@@ -1,0 +1,158 @@
+
+&star_job
+
+  ! do not begin with a pre-main sequence model
+    create_pre_main_sequence_model = .false.
+
+  ! Extra parameters for handling accretion and mass loss
+    extras_lrpar = 20
+    extras_rpar(:) = 0d0
+    !load_saved_model = .true.
+    !load_model_filename = 'final.mod'      
+    !load_model_filename = 'AGNstar.mod'      
+
+  ! save a model at the end of the run
+    save_model_when_terminate = .true.
+    save_model_filename = 'final.mod'
+
+    change_net = .true.
+    new_net_name = 'approx21.net'
+
+    !relax_initial_Y = .true.
+    !new_Y = 0.8
+
+  ! display on-screen plots
+    pgstar_flag = .true.
+
+  ! initial time step
+    set_initial_dt = .true.
+    years_for_initial_dt =  1d2  ! Increase from 1d0 to 1d2 (100 years)
+
+/ !end of star_job namelist
+
+&eos
+
+/ ! end of eos namelist
+
+&kap
+    Zbase = 0.02
+/ ! end of kap namelist
+
+&controls
+
+  ! starting specifications
+    initial_mass = 1d0
+
+    !relax_dY = 0.1d-2
+
+  ! AGN properties
+     x_ctrl(1) = 1d-16 ! Ambient density in cgs units
+     x_ctrl(2) = 1d6   ! Ambient sound speed in cm/s
+     x_ctrl(3) = 4d-1  ! Average accretion stream opacity in cm^2/s. Using electron scattering. Before we were using surface value  
+     x_ctrl(4) = 1d6 !1d7   ! Time (yrs) over which star falls into AGN (used for blending atmospheric boundary condition)
+     x_ctrl(5) = 7.0   ! Exponent for mixing turnon when using Ledd prescription.
+     x_ctrl(6) = 1d6   ! Time (yrs) over which the mass gain turns on.
+     x_ctrl(9) = 1d-11 ! AGN angular frequency in rad/s
+     x_ctrl(10) = 1d2  ! Cutoff mass due to the gap
+     x_ctrl(11) = 1d8  ! SMBH mass
+     x_ctrl(12) = 1d0  ! Transitional beta, used to set the Prad/P where extra mixing turns on (when using beta prescription).
+     x_ctrl(13) = 3.16d10  ! Time interval for AM reorientation in sec ~1000yrs
+     
+
+     x_logical_ctrl(1) = .false. ! Alternate radiative accretion reduction (1-L/Ledd)^2
+     x_logical_ctrl(2) = .false. ! Use mass gap cutoff
+     x_logical_ctrl(3) = .false. ! Use vertical rarification accretion rate prescription
+     x_logical_ctrl(4) = .false. ! Use shear accretion rate prescription
+     x_logical_ctrl(5) = .false. !.false. ! Use Hill accretion rate prescription (higher viscosity case)
+     x_logical_ctrl(6) = .false. ! Use tidal barrier accretion rate prescription (*low* viscosity case)
+     x_logical_ctrl(7) = .false. ! Rotation reduces L_edd.
+     x_logical_ctrl(8) = .false. ! Use radiation beta for mixing.
+     x_logical_ctrl(9) = .false. !.true.  ! Use accretion composition for Ledd
+     
+     x_logical_ctrl(10) = .true.  ! Use Chen for Mdot
+     x_logical_ctrl(11) = .false. ! Use Simple Rotational Mixing
+     x_logical_ctrl(12) = .false.  ! Use Rotation reduces Mdot in Chen.
+
+
+  ! options for energy conservation (see MESA V, Section 3)
+     energy_eqn_option = 'dedt'
+
+  ! Accretion stream atmosphere
+     use_other_surface_PT = .true.
+     use_other_adjust_mdot = .true.
+
+  ! Solver
+    use_gold_tolerances = .true.
+    convergence_ignore_equL_residuals = .true.
+    ignore_species_in_max_correction = .true.
+    min_timestep_limit = 1d-28 !1d-28
+    ! max_timestep = 1d10
+    ! not understand
+    max_timestep_factor = 1.2d0
+    max_timestep_factor_at_high_T = 1.1d0
+    min_logT_for_max_timestep_factor_at_high_T = 1d99
+    delta_lgL_limit = 1d2 !1d-1 Increase from 1d-1 to 1d2
+    use_other_timestep_limit = .true. 
+    varcontrol_target = 1d0 !1d-2  ! Increase from 1d-3 to 1d-2
+    gold_solver_iters_timestep_limit = 10 !30 ! Decrease from 30 to 10
+    time_delta_coeff = 1.5  ! Increase from 0.2 to 1.0
+    max_abs_rel_run_E_err = 1d99
+
+    limit_for_rel_error_in_energy_conservation = 1d99
+    hard_limit_for_rel_error_in_energy_conservation = 1d99
+    max_abs_rel_run_E_err = -1d0
+
+  ! Mesh
+    mesh_delta_coeff = 3 !0.3  ! Increase from 0.3 to 1.5
+    max_allowed_nz = 36000  ! Reduce from 16000 to 8000 !36000
+
+  ! Physics
+    use_other_D_mix = .true. ! Activate gradual increase of min_D_mix (with Gamma)
+    set_min_D_mix = .true.
+    mass_lower_limit_for_min_D_mix = 0d0
+    mass_upper_limit_for_min_D_mix = 1d99
+    min_D_mix = 2d4
+
+  ! Accrete H/He
+    accrete_same_as_surface = .false.
+    accrete_given_mass_fractions = .true.
+    num_accretion_species = 5
+    accretion_species_id(1) = 'h1'
+    accretion_species_xa(1) = 0.739d0 !0.2
+    accretion_species_id(2) = 'he4'
+    accretion_species_xa(2) = 0.2518d0 !0.8
+    accretion_species_id(3) = 'c12'
+    accretion_species_xa(3) = 0.0022d0
+    accretion_species_id(4) = 'n14'
+    accretion_species_xa(4) = 0.0007d0
+    accretion_species_id(5) = 'o16'
+    accretion_species_xa(5) = 0.0063d0
+
+  ! Output
+    terminal_interval = 10
+    history_interval = 1 ! Important to be 1 for using accreted_mass, lost_mass and lost mass in isotopes (it's not cumulative, so undercounts if not saving all history. Improve to cumulative)
+    warn_when_large_rel_run_E_err = 1d99
+    profile_interval = 100
+    photo_interval = 100
+    max_num_profile_models = 60000
+    max_num_profile_models = 60000
+    report_solver_progress = .true.
+    report_solver_dt_info = .false.
+
+  ! Stopping condition
+      ! stop when the star nears ZAMS (Lnuc/L > 0.99)
+        !Lnuc_div_L_zams_limit = 0.99d0
+        !stop_near_zams = .true.
+      ! stop when the center abundance by mass of h1 drops below this limit
+        !xa_central_lower_limit_species(1) = 'he4'
+        !xa_central_lower_limit(1) = 1d-5
+        log_center_temp_limit = 9.5d0!9.8d0
+        max_age = 3d9
+        max_model_number = 50000
+
+
+    !stop when mass reach 300msol from lin mohamod
+    !star_mass_max_limit = 300d0
+
+/ ! end of controls namelist
+
